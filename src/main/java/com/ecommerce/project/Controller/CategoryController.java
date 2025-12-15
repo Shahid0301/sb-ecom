@@ -1,26 +1,43 @@
 package com.ecommerce.project.Controller;
 
 import com.ecommerce.project.model.Category;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import com.ecommerce.project.service.CategoryService;
+import com.ecommerce.project.service.CategoryServiceImpl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 public class CategoryController {
-    private List<Category> categories=new ArrayList<>();
+    private CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+
+    }
 
     @GetMapping("/api/public/categories")
-    public  List<Category> getAllCategories(){
-        return categories;
+    public  ResponseEntity<List<Category>> getAllCategories(){
+        List<Category> categories=categoryService.getAllCategories();
+        return new ResponseEntity<> (categories,HttpStatus.OK);
     }
 
     @PostMapping("/api/public/categories")
-    public String createCategory(@RequestBody Category category){
-        categories.add(category);
-        return "Category added successfull:"+category;
+    public ResponseEntity<String> createCategory(@RequestBody Category category){
+        categoryService.createCategory(category);
+        return new ResponseEntity<>("Category Added Successfully",HttpStatus.CREATED);
+    }
+    @DeleteMapping("/api/admin/categories/{categoryId}")
+    public ResponseEntity<String> deleteCategory(@PathVariable Long categoryId){
+        try {
+            String status=categoryService.deleteCategory(categoryId);
+            return new ResponseEntity<> (status,HttpStatus.OK);
+        }catch (ResponseStatusException ex){
+            return new ResponseEntity<>(ex.getReason(),ex.getStatusCode());
+        }
     }
 }
